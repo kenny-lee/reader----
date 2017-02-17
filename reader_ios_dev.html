@@ -1,0 +1,264 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+  <meta name="format-detection" content="telephone=no">
+  <meta name="format-detection" content="address=no">
+  <title>阅读</title>
+  <link href="css/reader.css" rel="stylesheet" type="text/css">
+  <style type="text/css">
+    .sub-btn a{width: 33%}
+    #main p{text-indent:2em ;}
+    #setbox,#subnav{display: none}
+    #main{font-size: 20px}
+    body{background-color: #ceded1}
+       html,body,div.wrapper,#main{ height:100%; }
+    #content{min-height:70%}
+    #test{width: 100px}
+  </style>
+</head>
+<body>
+  <div class="wrapper" id="wrapper">
+
+    <div class="main" id="main">
+      <h2 id="title"></h2>
+      <div id="content">
+      </div>
+      <div class="control-container">
+        <div class="control-bx">
+          <div class="contraol-btn" id="pre2"><a href="javascript:void(0)">上一章</a></div>
+          <div class="contraol-btn" id="dir2"><a href="javascript:void(0)">目录</a></div>
+          <div class="contraol-btn2" id="next2"><a href="javascript:void(0)" class="control-nxt-btn">下一章</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subnav" id="subnav">
+      <div class="page-control" id="chapter">
+        <a href="javascript:void(0)" id="pre1">上一章</a>
+        <a href="javascript:void(0)" id="next1">下一章</a>
+      </div>
+      <div class="sub-btn" id="sub_btn">
+        <a href="javascript:void(0)" id="dir1"><i class="i-menu"></i>目录</a>
+        <a href="javascript:void(0)" id="conf"><i class="i-text-set"></i>设置</a>
+        <a href="javascript:void(0)" id="shelf"><i class="i-bookshelf"></i>书架</a>
+      </div>
+      <div class="setbox" id="setbox">
+        <h2>设置<a href="javascript:void(0)" class="i-set-close" id="conf_close"></a></h2>
+        <div class="setboxm">
+          <ul>
+            <li>
+              <span class="setboxm-tit">字号</span>
+              <div class="fontbox">
+                <div class="fontboxm">
+                  <span id="font_size">20</span>
+                  <a href="javascript:void(0)" class="fontbox-btn-small" id="small">小</a>
+                  <a href="javascript:void(0)" class="fontbox-btn-big" id="big">大</a>
+                </div>
+              </div>
+            </li>
+            <li class="pt3">
+              <span class="setboxm-tit">主题</span>
+              <div class="themebox" id="theme">
+                <div class="themeboxw">
+                  <a href="javascript:void(0)" class="themeboxm">
+                    <div class="themeboxmn"></div>
+                  </a>
+                </div>
+                <div class="themeboxw">
+                  <a href="javascript:void(0)" class="themeboxm">
+                    <div class="themeboxmn themebox-st2"></div>
+                  </a>
+                </div>
+                <div class="themeboxw">
+                  <a href="javascript:void(0)" class="themeboxm themebox-cur">
+                    <div class="themeboxmn themebox-st3"></div>
+                  </a>
+                </div>
+                <div class="themeboxw">
+                  <a href="javascript:void(0)" class="themeboxm">
+                    <div class="themeboxmn themebox-st4"></div>
+                  </a>
+                </div>
+                <div class="themeboxw">
+                  <a href="javascript:void(0)" class="themeboxm">
+                    <div class="themeboxmn themebox-st5"></div>
+                  </a>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script type="text/javascript" src="%READER-JS%"></script>
+  <script type="text/javascript" src="js/zepto.min.v1.0rc1.js"></script>
+  
+  <script type="text/javascript">
+  
+    var preChapter,nextChapter,content,dir,extra_data='';
+
+    //加载正文、更新章节标示
+    var loadChapter=function(json){
+      if(json.status==200){
+        preChapter = json.preChapter;
+        nextChapter = json.nextChapter;
+        content = json.novelContent;
+        dir = json.chapterUrl;
+        if (json.extra_data) {
+          extra_data = json.extra_data;
+        };
+
+        content=content.replace(/&nbsp;/g,'');
+        content = '<p>'+content.replace(/\n/g,'</p><p>')+'</p>';
+        $('#title').html(json.title);
+        $('#content').html(content);
+      }else{
+        toast(json.status,2000);
+      }
+    }
+
+     //冒泡提示
+     var toast=function(tip,intVal){
+      intVal = intVal || 2500;
+      if($('#abs-toast').length==0){
+        $('body').prepend('<div id="abs-toast" style="display: none;width:206px;text-align: center;border-radius: 2px;background-color: rgba(0, 0, 0, 0.48);position: fixed;top: 220px;left: 50%;line-height: 28px;margin: 0 0 0 -103px;color: #fff;padding: 5px;z-index: 999;"></div>');
+      }
+      var $toast = $('#abs-toast');
+      if($toast.css('display')!='none')
+        return;
+      $toast.html(tip);
+      $toast.show();
+      setTimeout(function(){
+        $toast.hide();
+      },intVal);
+    };
+
+    //背景颜色、字体初始化
+    var intialSetting = function(conf){
+      var json;
+      if (conf) {
+          var json = JSON.parse(conf);
+      }else{
+        return;
+      };
+      var bgColor = json.bgColor;
+      var fontSize = json.fontSize;
+      var themes=$('#theme>div>a');
+      if(fontSize){
+        $('#font_size').text(fontSize);
+        $('#main').css('font-size',parseInt(fontSize));
+      }
+
+      if(bgColor) {
+        $('body').css('background', bgColor);
+        $('#theme>div>a').removeClass('themebox-cur');
+        for (var i = 0; i < themes.length; i++) {
+          if (themes.eq(i).children().css('background') == bgColor) {
+            themes.eq(i).addClass('themebox-cur');
+            return ;
+          }
+        }
+      }
+    }
+
+    $(document).ready(function(){
+
+      //加载正文、更新章节标示
+      //NovelTransInvoker.loadCurrentChapter('loadChapter');
+      
+      //背景颜色、字体初始化
+      //NovelTransInvoker.loadConfig('intialSetting');
+
+      intialSetting('%READER-STYLES%');
+                      
+      $('#next1,#next2').on('click',function(event){
+        NovelTransInvoker.loadNextChapter( nextChapter,'loadChapter');
+        event.stopPropagation();
+      })
+
+      $('#pre1,#pre2').on('click',function(event){
+        NovelTransInvoker.loadPreviousChapter( preChapter,'loadChapter');
+        event.stopPropagation();
+      })
+
+      $('#dir1,#dir2').on('click',function(){
+        NovelTransInvoker.openChapterList(extra_data);
+      })
+
+      $('#shelf').on('click',function(){
+        NovelTransInvoker.openBookrack();
+      })
+
+      $('#big').on('click',function(){
+        var font_size =parseInt($('#main').css('font-size'))+2;
+        if(font_size>24){
+          toast('已经是最大字号');
+          return;
+        }
+        $('#main').css('font-size',font_size);
+        $('#font_size').text(font_size);
+        var conf={
+          "bgColor":$('.themebox-cur').children().eq(0).css('background'),
+          "fontSize":font_size
+        }
+        NovelTransInvoker.saveConfig(JSON.stringify(conf));
+      })
+
+      $('#small').on('click',function(){
+        var font_size =parseInt($('#main').css('font-size'))-2;
+        if(font_size<14){
+          toast('已经是最小字号');
+          return;
+        }
+        $('#main').css('font-size',font_size);
+        $('#font_size').text(font_size);
+        var conf={
+          "bgColor":$('.themebox-cur').children().eq(0).css('background'),
+          "fontSize":font_size
+        }
+        NovelTransInvoker.saveConfig(JSON.stringify(conf));
+      })
+
+      $('#theme').on('click','#theme>div>a',function(){
+        if(!$(this).hasClass('themebox-cur')){
+          var bgColor = $(this).children().css('background');
+          var conf={
+            "bgColor":bgColor,
+            "fontSize":parseInt($('#main').css('font-size'))
+          }
+          $('body').css('background',bgColor);
+          $('#theme>div>a').removeClass('themebox-cur');
+          $(this).addClass('themebox-cur');
+          NovelTransInvoker.saveConfig(JSON.stringify(conf));
+        }
+      })
+
+      $('#main').on('click',function() {
+        if ($('#subnav').css('display') == 'none') {
+          $('#subnav').show();
+        } else {
+          $('#subnav').hide();
+        }
+      })
+
+
+      $('#conf').on('click',function(){
+        $('#sub_btn').hide();
+        $('#chapter').hide();
+        $('#setbox').show();
+      })
+
+      $('#conf_close').on('click',function(){
+        $('#setbox').hide();
+        $('#sub_btn').show();
+        $('#chapter').show();
+      })
+
+    })
+</script>
+</body>
+</html>
